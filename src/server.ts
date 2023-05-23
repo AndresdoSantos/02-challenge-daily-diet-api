@@ -1,14 +1,10 @@
 import fastify from 'fastify'
 
-import { knex } from './database'
+import { usersRoutes } from './routes/users'
 
 const app = fastify()
 
-app.get('/hello', async (_, reply) => {
-  const response = await knex('sqlite_schema').select('*')
-
-  return reply.send(response)
-})
+app.register(usersRoutes, { prefix: 'users' })
 
 app
   .listen({
