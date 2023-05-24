@@ -12,6 +12,9 @@ export async function usersRoutes(app: FastifyInstance) {
   })
 
   app.post('', async (request, reply) => {
+    const userId = randomUUID()
+    const oneWeek = 60000 * 60 * 24 * 7 // 1 week
+
     const bodySchema = z.object({
       name: z.string().max(60, 'Must have 60 characters.'),
       email: z.string().max(60, 'Must have 60 characters.').email(),
@@ -28,8 +31,10 @@ export async function usersRoutes(app: FastifyInstance) {
     await knex('users').insert({
       email,
       name,
-      id: randomUUID(),
+      id: userId,
     })
+
+    reply.cookie('userId', userId, { maxAge: oneWeek, path: '/' })
 
     return reply.status(201).send()
   })
