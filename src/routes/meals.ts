@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { randomUUID } from 'node:crypto'
@@ -20,7 +21,26 @@ export async function mealsRoutes(app: FastifyInstance) {
       .where({
         user_id: userId,
       })
-      .select('*')
+      .select('id', 'name', 'description', 'inside_the_diet', 'created_at')
+
+    return { meals }
+  })
+
+  app.get('/:id', async (request) => {
+    const { userId } = request.cookies
+
+    const paramsSchema = z.object({
+      id: z.string().uuid(),
+    })
+
+    const { id } = paramsSchema.parse(request.params)
+
+    const meals = await knex('meals')
+      .where({
+        user_id: userId,
+        id,
+      })
+      .select('id', 'name', 'description', 'inside_the_diet', 'created_at')
 
     return { meals }
   })
@@ -44,6 +64,49 @@ export async function mealsRoutes(app: FastifyInstance) {
       user_id: userId,
     })
 
-    return reply.status(201).send({ message: 'Created!' }) // Return ID?
+    return reply.status(201).send()
+  })
+
+  app.put('/:id', async (request, reply) => {
+    const { userId } = request.cookies
+
+    const bodySchema = z.object({
+      name: z.string().optional(),
+      description: z.string().optional(),
+      inside_the_diet: z.coerce.boolean().optional(),
+      created_at: z.string().optional(),
+    })
+
+    const paramsSchema = z.object({
+      id: z.string().uuid(),
+    })
+
+    const { created_at, description, inside_the_diet, name } = bodySchema.parse(
+      request.body,
+    )
+
+    const { id } = paramsSchema.parse(request.params)
+
+    await knex('meals')
+      .where({
+        user_id: userId,
+        id,
+      })
+      .update({
+        created_at,
+        description,
+        inside_the_diet,
+        name,
+      })
+
+    return reply.send()
+  })
+
+  app.delete('/:id', async (request, reply) => {
+    const { userId } = request.cookies
+
+    await knex('meals').where('user_id', userId).delete('*')
+
+    return reply.status(204).send()
   })
 }
