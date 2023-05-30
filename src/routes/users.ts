@@ -5,12 +5,6 @@ import { randomUUID } from 'node:crypto'
 import { knex } from '../database'
 
 export async function usersRoutes(app: FastifyInstance) {
-  app.get('', async () => {
-    const users = await knex('users').select('*')
-
-    return { users }
-  })
-
   app.post('', async (request, reply) => {
     const userId = randomUUID()
     const oneWeek = 60000 * 60 * 24 * 7 // 1 week
